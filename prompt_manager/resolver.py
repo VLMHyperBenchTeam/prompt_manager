@@ -18,7 +18,12 @@ class PromptResolver:
 
     def resolve(self, item_metadata: Dict[str, Any]) -> PromptTemplate:
         """
-        Resolves the appropriate templates based on metadata.
+        Resolves the appropriate templates based on metadata and configuration.
+
+        Priority order:
+        1. Fixed prompts (overrides)
+        2. Mapping by doc_type
+        3. Default prompts
 
         Args:
             item_metadata: Metadata of the current item (e.g., containing 'doc_type').
@@ -26,13 +31,20 @@ class PromptResolver:
         Returns:
             A PromptTemplate containing the resolved system and user prompt templates.
         """
+        # 1. Check for fixed prompts (Highest priority)
+        if self.config.fixed_system_prompt or self.config.fixed_prompt:
+            return PromptTemplate(
+                system_prompt=self.config.fixed_system_prompt or self.config.system_prompt,
+                user_prompt=self.config.fixed_prompt or self.config.user_prompt
+            )
+
         doc_type = item_metadata.get("doc_type")
         
-        # Start with defaults
+        # 3. Start with defaults (Lowest priority)
         resolved_system = self.config.system_prompt
         resolved_user = self.config.user_prompt
 
-        # Apply mapping if doc_type exists and is in type_mapping
+        # 2. Apply mapping if doc_type exists and is in type_mapping
         if doc_type and doc_type in self.config.type_mapping:
             mapping = self.config.type_mapping[doc_type]
             if mapping.system_prompt is not None:

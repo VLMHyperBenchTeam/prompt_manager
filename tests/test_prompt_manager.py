@@ -53,6 +53,16 @@ def test_overrides(sample_config):
     assert res["system_prompt"] == "Overridden System"
     assert res["user_prompt"] == "Overridden User"
 
+def test_config_fixed_prompts(sample_config):
+    # Test fixed prompts directly in PromptConfig
+    sample_config["fixed_system_prompt"] = "Config Fixed System"
+    sample_config["fixed_prompt"] = "Config Fixed User"
+    manager = PromptManager(sample_config)
+    
+    res = manager.get_prompts({"doc_type": "passport", "number": "123"})
+    assert res["system_prompt"] == "Config Fixed System"
+    assert res["user_prompt"] == "Config Fixed User"
+
 def test_from_json(tmp_path, sample_config):
     config_file = tmp_path / "config.json"
     with open(config_file, "w") as f:

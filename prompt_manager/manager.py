@@ -62,13 +62,23 @@ class PromptManager:
             Dictionary with 'system_prompt' and 'user_prompt'.
         """
         # Resolve templates
-        prompts = self.resolver.resolve_and_render(item_metadata, context)
-
-        # Apply overrides (ADR-009: Override has highest priority)
+        # If overrides are provided, we temporarily update the config for this resolution
         if overrides:
-            if "fixed_system_prompt" in overrides and overrides["fixed_system_prompt"] is not None:
-                prompts["system_prompt"] = overrides["fixed_system_prompt"]
-            if "fixed_prompt" in overrides and overrides["fixed_prompt"] is not None:
-                prompts["user_prompt"] = overrides["fixed_prompt"]
+            original_fixed_system = self.config.fixed_system_prompt
+            original_fixed_user = self.config.fixed_prompt
+            
+            if "fixed_system_prompt" in overrides:
+                self.config.fixed_system_prompt = overrides["fixed_system_prompt"]
+            if "fixed_prompt" in overrides:
+                self.config.fixed_prompt = overrides["fixed_prompt"]
+            
+            try:
+                prompts = self.resolver.resolve_and_render(item_metadata, context)
+            finally:
+                # Restore original config to avoid side effects
+                self.config.fixed_system_prompt = original_fixed_system
+                self.config.fixed_prompt = original_fixed_user
+        else:
+            prompts = self.resolver.resolve_and_render(item_metadata, context)
 
         return prompts

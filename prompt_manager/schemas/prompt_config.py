@@ -14,7 +14,9 @@ class PromptConfig(BaseModel):
     """
     system_prompt: Optional[str] = Field(None, description="Default global system prompt")
     user_prompt: Optional[str] = Field(None, description="Default global user prompt")
+    fixed_system_prompt: Optional[str] = Field(None, description="Override for system prompt (highest priority)")
+    fixed_prompt: Optional[str] = Field(None, description="Override for user prompt (highest priority)")
     type_mapping: Dict[str, PromptTemplate] = Field(
-        default_factory=dict, 
+        default_factory=dict,
         description="Mapping from doc_type to specific templates"
     )
